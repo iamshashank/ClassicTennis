@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Game Classic</title>
+    <script>
+    var canvas, canvasContext;
+    var ballX, ballY, ballSpeedX = 10,
+        ballSpeedY = 10;
+    var paddleOneY = 250,
+        paddleTwoY = 250;
+    const PADDLE_HEIGHT = 150;
+    const PADDLE_WIDTH = 10;
+    const WIN_SCORE = 3;
+    var player1Score =0;
+    var player2Score =0;
+    var showingWinScreen = false;
+
+    window.onload = function() {
+        canvas = document.getElementById('gameCanvas');
+        canvasContext = canvas.getContext('2d');
+        ballX = 50;
+        ballY = 50;
+        var frameRate = 30;
+        setInterval(function() {
+        		moveEverything();
+            	drawEverything();
+        }, 1000 / frameRate);
+        canvas.addEventListener('mousemove', function(evt) {
+            var mousePos = calculateMousePos(evt);
+            paddleOneY = mousePos.y - PADDLE_HEIGHT / 2;
+            //paddleTwoY = mousePos.y - PADDLE_HEIGHT / 2;
+
+        });
+        canvas.addEventListener('mousedown',handleMouseClick);
+    }
+
+    function handleMouseClick(evt){
+    	if(showingWinScreen){
+    		player1Score=0;
+    		player2Score=0;
+    		showingWinScreen=false;
+    	}
+    }
+
+
+    function calculateMousePos(evt) {
+        var rect = canvas.getBoundingClientRect();
+        var root = document.documentElement;
+        var mouseX = evt.clientX - rect.left - root.scrollLeft;
+        var mouseY = evt.clientY - rect.top - root.scrollTop;
+        return {
+            x: mouseX,
+            y: mouseY
+        };
+    }
+
+    function computerMovement(){
+    	var paddlle2center = paddleTwoY + PADDLE_HEIGHT /2;
+    	if(paddlle2center < ballY-35){
+    		paddleTwoY = paddleTwoY + 10;
+    	}else if(paddlle2center > ballY+35){
+    		paddleTwoY = paddleTwoY - 10;
+    	}
+    }
+
+    function moveEverything() {
+    	if(showingWinScreen){
+    		return;
+    	}
+    	computerMovement();
+        ballX = ballX + ballSpeedX;
+        ballY = ballY + ballSpeedY;
+        if (ballX < 0+PADDLE_WIDTH/2) {
+            if (ballY > paddleOneY && ballY < paddleOneY + PADDLE_HEIGHT) {
+                ballSpeedX = -ballSpeedX;
+                //angular speed for ball
+                var deltaY = ballY - (paddleOneY + PADDLE_HEIGHT/2);
+                ballSpeedY = deltaY * 0.35;
+            } else {
+                player2Score++;
+                ballReset();
+            }
+        }
+        if (ballX > canvas.width-PADDLE_WIDTH/2) {
+            if (ballY > paddleTwoY && ballY < paddleTwoY + PADDLE_HEIGHT) {
+                ballSpeedX = -ballSpeedX;
+                 //angular speed for ball
+                var deltaY = ballY - (paddleTwoY + PADDLE_HEIGHT/2);
+                ballSpeedY = deltaY * 0.35;
+            } else {
+                player1Score++;
+                ballReset();
+            }
+        }
+        if (ballY > canvas.height || ballY < 0) {
+            ballSpeedY = -ballSpeedY;
+        }
+
+    }
+
+    function ballReset() {
+    	if(player1Score >= WIN_SCORE || player2Score >=WIN_SCORE){
+    		showingWinScreen = true;
+    	}
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+        ballSpeedX = -ballSpeedX;
+    }
+
+    function drawEverything() {
+        //for canvas
+        colorRect(0, 0, canvas.width, canvas.height, 'black');
+        //scoew dispplay
+        canvasContext.fillText(player1Score,100,100);
+        canvasContext.fillText(player2Score,canvas.width-100,100)
+        //if game over
+        if(showingWinScreen){
+        	canvasContext.fillStyle = 'white';
+        	canvasContext.fillText('Game Ove, Click to continue',canvas.width,canvas.height);
+        	return;
+        }
+
+        //paddle left
+        colorRect(0, paddleOneY, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+        //paddle right
+        colorRect(canvas.width - PADDLE_WIDTH, paddleTwoY, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+
+        //ball
+        //colorRect(ballX,200,10,10,'red');
+        colorCircle(ballX, ballY, 10, 0, 2 * Math.PI, 'white')
+
+
+    }
+
+    function colorCircle(leftX, leftY, radius, start, end, color) {
+        canvasContext.fillStyle = color;
+        canvasContext.beginPath();
+        canvasContext.arc(leftX, leftY, 10, 0, 2 * Math.PI, true);
+        canvasContext.fill();
+    }
+
+    function colorRect(leftX, leftY, width, height, color) {
+        canvasContext.fillStyle = color;
+        canvasContext.fillRect(leftX, leftY, width, height);
+    }
+    </script>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+</body>
+
+</html>
